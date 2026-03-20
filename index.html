@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cún Tâm Sự | PawSights AI</title>
+    <link href="style.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Lexend', sans-serif; background-color: #FDF7F2; }
+        .lang-btn { filter: grayscale(1); opacity: 0.5; transition: 0.3s; cursor: pointer; }
+        .lang-btn.active { filter: grayscale(0); opacity: 1; transform: scale(1.2); }
+        .active-ring { outline: 4px solid #FF9F43 !important; transform: scale(1.05); }
+    </style>
+</head>
+<body class="max-w-md mx-auto min-h-screen pb-24">
+
+    <!-- Language Switcher -->
+    <div class="fixed top-4 right-4 z-50 flex gap-4 bg-white/80 p-2 rounded-full backdrop-blur-md shadow-sm border border-gray-100">
+        <button onclick="setLanguage('vi')" id="flag-vi" class="lang-btn active text-2xl">🇻🇳</button>
+        <button onclick="setLanguage('en')" id="flag-en" class="lang-btn text-2xl">🇺🇸</button>
+    </div>
+
+    <header class="p-8 text-center">
+        <h1 id="txt-title" class="text-3xl font-bold text-[#FF9F43]">Cún Tâm Sự 🐾</h1>
+        <p id="txt-subtitle" class="text-gray-500 mt-1">Lắng nghe tiếng lòng của đại boss</p>
+    </header>
+
+    <main class="px-6 space-y-8">
+        <!-- STEP 1 -->
+        <section>
+            <h2 id="txt-step1" class="font-bold text-gray-800 mb-4 uppercase text-xs tracking-widest">Bước 1: Cảm xúc</h2>
+            <div id="mood-container" class="grid grid-cols-4 gap-3">
+                <button onclick="selectMood('Vui vẻ', 'Happy', this)" class="bg-white aspect-square rounded-2xl shadow-sm text-3xl transition-all">😊</button>
+                <button onclick="selectMood('Lo âu', 'Anxious', this)" class="bg-white aspect-square rounded-2xl shadow-sm text-3xl transition-all">😟</button>
+                <button onclick="selectMood('Quạu', 'Aggressive', this)" class="bg-white aspect-square rounded-2xl shadow-sm text-3xl transition-all">😡</button>
+                <button onclick="selectMood('Mệt', 'Tired', this)" class="bg-white aspect-square rounded-2xl shadow-sm text-3xl transition-all">😴</button>
+            </div>
+        </section>
+
+        <!-- STEP 2 -->
+        <section class="relative z-10">
+            <h2 id="txt-step2" class="font-bold text-gray-800 mb-4 uppercase text-xs tracking-widest">Bước 2: Hành động</h2>
+            <div id="context-container" class="flex flex-wrap gap-2">
+                <button type="button" onclick="selectContext('Đang ăn', 'Eating', this)" class="ctx-btn bg-white px-5 py-3 rounded-full border border-gray-100 text-sm shadow-sm transition-all active:scale-95">
+                    <span class="pointer-events-none ctx-text" data-vi="🍗 Đang ăn" data-en="🍗 Eating">🍗 Đang ăn</span>
+                </button>
+                <button type="button" onclick="selectContext('Sủa', 'Barking', this)" class="ctx-btn bg-white px-5 py-3 rounded-full border border-gray-100 text-sm shadow-sm transition-all active:scale-95">
+                    <span class="pointer-events-none ctx-text" data-vi="🐕 Sủa" data-en="🐕 Barking">🐕 Sủa</span>
+                </button>
+                <button type="button" onclick="selectContext('Mừng rỡ', 'Greeting', this)" class="ctx-btn bg-white px-5 py-3 rounded-full border border-gray-100 text-sm shadow-sm transition-all active:scale-95">
+                    <span class="pointer-events-none ctx-text" data-vi="✨ Mừng" data-en="✨ Greeting">✨ Mừng</span>
+                </button>
+            </div>
+        </section>
+
+        <!-- STEP 3 -->
+        <section>
+            <h2 id="txt-step3" class="font-bold text-gray-800 mb-4 uppercase text-xs tracking-widest">Bước 3: Chi tiết</h2>
+            <textarea id="noteInput" rows="3" class="w-full p-4 rounded-2xl border-none shadow-sm text-sm" placeholder="Nhập thêm chi tiết..."></textarea>
+        </section>
+
+        <button id="submitBtn" onclick="runAnalysis()" class="w-full py-5 bg-[#FF9F43] text-white font-bold rounded-2xl shadow-lg active:scale-95 transition-all">GIẢI MÃ CÙN NGAY ✨</button>
+
+        <!-- RESULT -->
+        <div id="resultPanel" class="hidden">
+            <div class="bg-white border-2 border-[#00B894] p-6 rounded-3xl mt-4 shadow-md">
+                <h3 class="text-[#00B894] font-bold mb-2 italic" id="txt-result-header">"Sen ơi, Cún bảo là..."</h3>
+                <p id="aiOutput" class="text-gray-700 text-sm leading-relaxed"></p>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let currentLang = 'vi';
+        let valMood = ""; let valContext = "";
+
+        const translations = {
+            vi: { title: "Cún Tâm Sự 🐾", subtitle: "Lắng nghe đại boss", step1: "Bước 1: Cảm xúc", step2: "Bước 2: Hành động", step3: "Bước 3: Chi tiết", placeholder: "Nhập thêm chi tiết...", btn: "GIẢI MÃ CÙN NGAY ✨", loading: "Đang hỏi Cún...", resHeader: '"Sen ơi, Cún bảo là..."', alert: "Chọn đủ cảm xúc và hành động nhé!" },
+            en: { title: "PawSights AI 🐾", subtitle: "Translate dog thoughts", step1: "Step 1: Mood", step2: "Step 2: Action", step3: "Step 3: Details", placeholder: "Enter more details...", btn: "DECODE BEHAVIOR ✨", loading: "Asking pup...", resHeader: '"I think the pup is saying..."', alert: "Select mood and action!" }
+        };
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`flag-${lang}`).classList.add('active');
+            
+            document.getElementById('txt-title').innerText = translations[lang].title;
+            document.getElementById('txt-subtitle').innerText = translations[lang].subtitle;
+            document.getElementById('txt-step1').innerText = translations[lang].step1;
+            document.getElementById('txt-step2').innerText = translations[lang].step2;
+            document.getElementById('txt-step3').innerText = translations[lang].step3;
+            document.getElementById('noteInput').placeholder = translations[lang].placeholder;
+            document.getElementById('submitBtn').innerText = translations[lang].btn;
+            document.getElementById('txt-result-header').innerText = translations[lang].resHeader;
+            
+            document.querySelectorAll('.ctx-text').forEach(el => {
+                el.innerText = el.getAttribute(`data-${lang}`);
+            });
+        }
+
+        function selectMood(vn, en, el) {
+            valMood = (currentLang === 'vi') ? vn : en;
+            document.querySelectorAll('#mood-container button').forEach(b => b.classList.remove('active-ring'));
+            el.classList.add('active-ring');
+        }
+
+        function selectContext(vn, en, el) {
+            valContext = (currentLang === 'vi') ? vn : en;
+            document.querySelectorAll('.ctx-btn').forEach(b => b.classList.remove('active-ring', 'bg-orange-50', 'border-orange-400'));
+            el.classList.add('active-ring', 'bg-orange-50', 'border-orange-400');
+        }
+
+        async function runAnalysis() {
+            if (!valMood || !valContext) return alert(translations[currentLang].alert);
+            const btn = document.getElementById('submitBtn');
+            const panel = document.getElementById('resultPanel');
+            const output = document.getElementById('aiOutput');
+            
+            btn.disabled = true;
+            btn.innerText = translations[currentLang].loading;
+
+            try {
+                const response = await fetch('api.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mood: valMood, context: valContext, note: document.getElementById('noteInput').value, lang: currentLang })
+                });
+                const data = await response.json();
+                panel.classList.remove('hidden');
+                if(data.status === "success") {
+                    output.innerText = data.ai_response;
+                } else {
+                    output.innerText = "Error: " + data.message;
+                }
+                panel.scrollIntoView({ behavior: 'smooth' });
+            } catch (e) {
+                alert("Error connecting to server.");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = translations[currentLang].btn;
+            }
+        }
+    </script>
+</body>
+</html>
